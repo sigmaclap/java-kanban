@@ -1,14 +1,22 @@
-package Tasks;
+package tasks;
+
+import statusTasks.Status;
 
 import java.util.Objects;
 
 public class Subtask extends Task {
-    private int epicId;
+    private Integer epicId;
 
-    public Subtask(String nameTask, String description, String statusTask, Integer epicId) {
-        super(nameTask, description, statusTask);
+    public Subtask(String name, String description, Status status, int epicId) {
+        super(name, description, status);
         this.epicId = epicId;
     }
+
+    public Subtask(Integer id, String name, String description, Status status, int epicId) {
+        super(id, name, description, status);
+        this.epicId = epicId;
+    }
+
     public int getEpicId() {
         return epicId;
     }
@@ -34,10 +42,10 @@ public class Subtask extends Task {
     @Override
     public String toString() {
         return "Subtask{" +
-                "nameTask='" + getNameTask() + '\'' +
+                "nameTask='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
-                ", idTask=" + getIdTask() +
-                ", statusTask='" + getStatusTask() + '\'' +
+                ", idTask=" + getId() +
+                ", statusTask='" + getStatus() + '\'' +
                 '}';
     }
 }
