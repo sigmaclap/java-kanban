@@ -16,9 +16,9 @@ public class Main {
         manager.createEpic(new Epic("Приготовить шаурму",
                 "в сырном лавше", Status.NEW));
         manager.createSubTask(new Subtask("Купить овощи",
-                "не забыть Халапеньо", Status.NEW,3));
+                "не забыть Халапеньо", Status.NEW, 3));
         manager.createSubTask(new Subtask("Купить мясо",
-                "описание", Status.NEW,3));
+                "описание", Status.NEW, 3));
         manager.createEpic(new Epic("Другой эпик",
                 "с одной позадачей", Status.IN_PROGRESS));
         manager.createSubTask(new Subtask("Подзадача",
