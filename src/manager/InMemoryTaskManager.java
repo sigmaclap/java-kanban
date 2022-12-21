@@ -2,9 +2,9 @@ package manager;
 
 import manager.history.HistoryManager;
 import statusTasks.Status;
-import tasks.Task;
 import tasks.Epic;
 import tasks.Subtask;
+import tasks.Task;
 
 import java.util.*;
 
@@ -149,6 +149,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTaskById(Integer id) {
         if (tasks.containsKey(id)) {
             tasks.remove(id);
+            historyManager.remove(id);
         } else {
             System.out.println("Задача не найдена, для удаления.");
         }
@@ -160,8 +161,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (epicTasks.containsKey(id)) {
             for (Integer subTaskId : epic.getSubtaskIds()) {
                 subTasks.remove(subTaskId);
+                historyManager.remove(subTaskId);
             }
             epicTasks.remove(id);
+            historyManager.remove(id);
         } else {
             System.out.println("Эпик не найден для удаления.");
         }
@@ -174,8 +177,9 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epicTasks.get(subtask.getEpicId());
             Integer subtaskId = subtask.getId();
             epic.getSubtaskIds().remove(subtaskId);
-            updateStatus(epic);
             subTasks.remove(id);
+            historyManager.remove(id);
+            updateStatus(epic);
         } else {
             System.out.println("Подзадача не найдена для удаления.");
         }
@@ -202,7 +206,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         ArrayList<Subtask> subtasks = getSubTaskByEpic(epic.getId());
-        if (subtasks.size() == 0) {
+        if (subtasks.isEmpty()) {
             epic.setStatus(Status.NEW);
             return;
         }

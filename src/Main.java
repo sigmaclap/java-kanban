@@ -19,26 +19,32 @@ public class Main {
                 "не забыть Халапеньо", Status.NEW, 3));
         manager.createSubTask(new Subtask("Купить мясо",
                 "описание", Status.NEW, 3));
-        manager.createEpic(new Epic("Другой эпик",
-                "с одной позадачей", Status.IN_PROGRESS));
         manager.createSubTask(new Subtask("Подзадача",
-                "под вторым эпиком", Status.NEW, 6));
+                "под вторым эпиком", Status.NEW, 3));
+        manager.createEpic(new Epic("Другой эпик",
+                "с одной позадачей", Status.NEW));
+
         System.out.println(manager.getAllTask());
         System.out.println(manager.getAllEpicTask());
         System.out.println(manager.getAllSubTask());
         manager.getTaskById(1);
-        manager.getEpicTaskByID(3);
-        manager.getSubTaskByID(4);
         manager.getTaskById(2);
-        manager.getSubTaskByID(5);
-        manager.getSubTaskByID(7);
         manager.getTaskById(1);
-        manager.getEpicTaskByID(3);
+        System.out.println("------ История ниже ------");
+        manager.getSubTaskByID(4);
+        System.out.println(manager.getHistory());
+        manager.getTaskById(2);
+        System.out.println(manager.getHistory());
+        System.out.println(manager.getHistory());
+        manager.deleteTaskById(1);
         manager.getSubTaskByID(4);
         manager.getSubTaskByID(5);
-        manager.getHistory();
+        manager.getSubTaskByID(6);
+        System.out.println("Получили все сабтаски Эпика под id = 3");
         manager.getEpicTaskByID(3);
-        manager.getHistory();
+        System.out.println(manager.getHistory());
+        manager.deleteEpicTaskById(3);
+        System.out.println(manager.getHistory());
     }
 }
 
