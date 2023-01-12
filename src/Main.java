@@ -5,6 +5,7 @@ import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 
+
 public class Main {
     public static void main(String[] args) {
         TaskManager manager = Managers.getDefault();
@@ -16,11 +17,11 @@ public class Main {
         manager.createEpic(new Epic("Приготовить шаурму",
                 "в сырном лавше", Status.NEW));
         manager.createSubTask(new Subtask("Купить овощи",
-                "не забыть Халапеньо", Status.NEW, 3));
+                "не забыть Халапеньо", Status.DONE, 3));
         manager.createSubTask(new Subtask("Купить мясо",
-                "описание", Status.NEW, 3));
+                "описание", Status.DONE, 3));
         manager.createSubTask(new Subtask("Подзадача",
-                "под вторым эпиком", Status.NEW, 3));
+                "под вторым эпиком", Status.DONE, 3));
         manager.createEpic(new Epic("Другой эпик",
                 "с одной позадачей", Status.NEW));
 

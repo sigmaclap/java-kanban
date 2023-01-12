@@ -1,6 +1,7 @@
 package tasks;
 
 import statusTasks.Status;
+import statusTasks.TypeTasks;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -44,13 +45,9 @@ public class Epic extends Task {
         return Objects.hash(super.hashCode(), subtaskIds);
     }
 
+
     @Override
     public String toString() {
-        return "Epic{" +
-                "nameTask='" + getName() + '\'' +
-                ", description='" + getDescription() + '\'' +
-                ", idTask=" + getId() +
-                ", statusTask='" + getStatus() + '\'' +
-                '}';
+        return getId() + "," + TypeTasks.EPIC + "," + getName() + "," + getStatus() + "," + getDescription();
     }
 }

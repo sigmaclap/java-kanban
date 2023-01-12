@@ -1,6 +1,7 @@
 package tasks;
 
 import statusTasks.Status;
+import statusTasks.TypeTasks;
 
 import java.util.Objects;
 
@@ -40,13 +41,10 @@ public class Subtask extends Task {
         return Objects.hash(super.hashCode(), epicId);
     }
 
+
     @Override
     public String toString() {
-        return "Subtask{" +
-                "nameTask='" + getName() + '\'' +
-                ", description='" + getDescription() + '\'' +
-                ", idTask=" + getId() +
-                ", statusTask='" + getStatus() + '\'' +
-                '}';
+        return getId() + "," + TypeTasks.SUBTASK + "," + getName() + "," + getStatus() + "," + getDescription() +
+                "," + getEpicId();
     }
 }

@@ -1,4 +1,4 @@
-package manager.history;
+package manager.historyTaskManager;
 
 import tasks.Task;
 
@@ -11,6 +11,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     Map<Integer, Node> nodeMap = new HashMap<>();
     private Node head;
     private Node tail;
+
 
     public static class Node {
         public Task task;
@@ -50,14 +51,12 @@ public class InMemoryHistoryManager implements HistoryManager {
             head = next;
         } else {
             prev.next = next;
-            node.prev = null;
         }
 
         if (next == null) {
             tail = prev;
         } else {
             next.prev = prev;
-            node.next = null;
         }
         node.task = null;
     }

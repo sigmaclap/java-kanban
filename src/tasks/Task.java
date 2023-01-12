@@ -1,6 +1,7 @@
 package tasks;
 
 import statusTasks.Status;
+import statusTasks.TypeTasks;
 
 import java.util.Objects;
 
@@ -72,13 +73,10 @@ public class Task {
         return Objects.hash(name, description, id, status);
     }
 
+
     @Override
     public String toString() {
-        return "Task{" +
-                "nameTask='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", idTask=" + id +
-                ", statusTask='" + status + '\'' +
-                '}';
+        return id + "," + TypeTasks.TASK + "," + name + "," + status + "," + description;
     }
+
 }
