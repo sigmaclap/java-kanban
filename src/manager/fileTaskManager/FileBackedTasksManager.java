@@ -21,7 +21,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         this.file = file;
     }
 
-    private String LAST_LINE;
+    private static String LAST_LINE;
 
     public static void main(String[] args) {
         File file = new File("resources/doc.csv");
@@ -69,11 +69,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     static String historyToString(HistoryManager historyManager) {
-        List<String> var = new ArrayList<>();
+        List<String> historyList = new ArrayList<>();
         for (Task list : historyManager.getHistory()) {
-            var.add(String.valueOf(list.getId()));
+            historyList.add(String.valueOf(list.getId()));
         }
-        return String.join(",", var);
+        return String.join(",", historyList);
     }
 
     static FileBackedTasksManager loadFromFile(File file) {
@@ -82,7 +82,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             Task task = manager.fromString(line);
             manager.putTaskToManager(task);
         }
-        manager.addToHistory(manager.LAST_LINE);
+        manager.addToHistory(LAST_LINE);
         return manager;
     }
 
@@ -97,7 +97,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public List<String> read() {
-        List<String> var = new ArrayList<>();
+        List<String> bufferedLines = new ArrayList<>();
         try (BufferedReader fileReader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8), 1000)) {
             fileReader.readLine();
             while (fileReader.ready()) {
@@ -105,13 +105,13 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                 if (line.isEmpty()) {
                     break;
                 }
-                var.add(line);
+                bufferedLines.add(line);
             }
             LAST_LINE = fileReader.readLine();
         } catch (IOException exception) {
             throw new ManagerSaveException("Ошибка чтения данных.", exception);
         }
-        return var;
+        return bufferedLines;
     }
 
     public void addToHistory(String value) {
@@ -127,15 +127,15 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public Task fromString(String value) {
-        String[] var = value.split(",");
-        TypeTasks type = TypeTasks.valueOf(var[1]);
+        String[] values = value.split(",");
+        TypeTasks type = TypeTasks.valueOf(values[1]);
         switch (type) {
             case TASK:
-                return new Task(Integer.parseInt(var[0]), var[2], var[4], Status.valueOf(var[3]));
+                return new Task(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]));
             case EPIC:
-                return new Epic(Integer.parseInt(var[0]), var[2], var[4], Status.valueOf(var[3]));
+                return new Epic(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]));
             case SUBTASK:
-                return new Subtask(Integer.parseInt(var[0]), var[2], var[4], Status.valueOf(var[3]), Integer.parseInt(var[5]));
+                return new Subtask(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]), Integer.parseInt(values[5]));
             default:
                 throw new IllegalArgumentException();
         }
