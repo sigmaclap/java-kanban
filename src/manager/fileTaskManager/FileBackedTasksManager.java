@@ -10,6 +10,8 @@ import tasks.Task;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,35 +25,10 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     private static String LAST_LINE;
 
-    public static void main(String[] args) {
-        File file = new File("resources/doc.csv");
-        FileBackedTasksManager manager = new FileBackedTasksManager(file);
-        manager.createTask(new Task("Задача",
-                "Описание", Status.IN_PROGRESS));
-        manager.createTask(new Task("Задача 2",
-                "Описание 2", Status.IN_PROGRESS));
-        manager.createEpic(new Epic("Эпик 1",
-                "Описание эпика 1", Status.NEW));
-        manager.createSubTask(new Subtask("Сабтаск 1",
-                "Описание сабтаска 1", Status.NEW, 3));
-        manager.createSubTask(new Subtask("Сабтаск 2",
-                "Описание сабтаска 2", Status.IN_PROGRESS, 3));
-        manager.getTaskById(1);
-        manager.getEpicTaskByID(3);
-        manager.getTaskById(2);
-        manager.getSubTaskByID(5);
-
-        FileBackedTasksManager manager1 = loadFromFile(file);
-        System.out.println(manager1.getAllTask());
-        System.out.println(manager1.getAllEpicTask());
-        System.out.println(manager1.getAllSubTask());
-        System.out.println(manager1.getHistory());
-
-    }
 
     public void save() {
         try (BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8), 1000)) {
-            fileWriter.write("id,type,name,status,description,epic\n");
+            fileWriter.write("id,type,name,status,description,startTime,duration,endTime,epic\n");
             for (Task task : getTasks()) {
                 fileWriter.write(task + "\n");
             }
@@ -76,7 +53,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return String.join(",", historyList);
     }
 
-    static FileBackedTasksManager loadFromFile(File file) {
+    public static FileBackedTasksManager loadFromFile(File file) {
         FileBackedTasksManager manager = new FileBackedTasksManager(file);
         for (String line : manager.read()) {
             Task task = manager.fromString(line);
@@ -115,6 +92,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public void addToHistory(String value) {
+        if (value == null) {
+            return;
+        }
         for (Integer id : historyFromString(value)) {
             if (epicTasks.containsKey(id)) {
                 historyManager.add(epicTasks.get(id));
@@ -129,16 +109,22 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     public Task fromString(String value) {
         String[] values = value.split(",");
         TypeTasks type = TypeTasks.valueOf(values[1]);
-        switch (type) {
-            case TASK:
-                return new Task(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]));
-            case EPIC:
-                return new Epic(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]));
-            case SUBTASK:
-                return new Subtask(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]), Integer.parseInt(values[5]));
-            default:
-                throw new IllegalArgumentException();
+        try {
+            LocalDateTime startTime = LocalDateTime.parse(values[5]);
+            switch (type) {
+                case TASK:
+                    return new Task(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]), startTime, Long.parseLong(values[6]));
+                case EPIC:
+                    return new Epic(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]), startTime, Long.parseLong(values[6]), LocalDateTime.parse(values[7]));
+                case SUBTASK:
+                    return new Subtask(Integer.parseInt(values[0]), values[2], values[4], Status.valueOf(values[3]), startTime, Long.parseLong(values[6]), Integer.parseInt(values[8]));
+                default:
+                    throw new IllegalArgumentException();
+            }
+        } catch (DateTimeParseException exception) {
+            throw new ManagerSaveException("Невозможно рассчитать начало задачи для эпика, подзадачи отсутствуют");
         }
+
     }
 
     static List<Integer> historyFromString(String value) {
@@ -148,8 +134,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             for (String number : id) {
                 history.add(Integer.valueOf(number));
             }
-        } else {
-            System.out.println("Пустая строка, либо неверено переданны данные.");
         }
         return history;
     }
