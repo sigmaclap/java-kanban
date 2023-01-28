@@ -1,6 +1,6 @@
 package manager.historyTaskManager;
 
-import manager.fileTaskManager.ManagerSaveException;
+import manager.fileTaskManager.TaskValidationException;
 import tasks.Task;
 
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class InMemoryHistoryManager implements HistoryManager {
             return;
         }
         if (node == null) {
-            throw new ManagerSaveException("Невозможно удалить выбранную задачу из истории, укажите верный номер задачи");
+            throw new TaskValidationException("Невозможно удалить выбранную задачу из истории, укажите верный номер задачи");
         }
         nodeMap.remove(node.task.getId());
         Node next = node.next;

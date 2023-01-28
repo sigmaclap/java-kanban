@@ -122,7 +122,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     throw new IllegalArgumentException();
             }
         } catch (DateTimeParseException exception) {
-            throw new ManagerSaveException("Невозможно рассчитать начало задачи для эпика, подзадачи отсутствуют");
+            throw new TaskValidationException("Невозможно рассчитать начало задачи для эпика, подзадачи отсутствуют");
         }
 
     }

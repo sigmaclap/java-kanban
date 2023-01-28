@@ -1,6 +1,6 @@
 package manager;
 
-import manager.fileTaskManager.ManagerSaveException;
+import manager.fileTaskManager.TaskValidationException;
 import org.junit.jupiter.api.Test;
 import statusTasks.Status;
 import tasks.Epic;
@@ -44,6 +44,40 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertNotNull(taskManager.getAllTask());
         assertNotEquals(0, taskManager.getAllTask().size());
         assertEquals(2, taskManager.getAllTask().size());
+    }
+
+    @Test
+    void CheckAddSubTaskAndTaskWithNullStartTime() {
+        Task newTask = new Task("Task", "Description",
+                Status.NEW, null, 10);
+        taskManager.createTask(newTask);
+        Task newTask1 = new Task("Task1", "Description1",
+                Status.NEW, null, 10);
+        taskManager.createTask(newTask1);
+        Epic newEpic = new Epic("Epic", "Description",
+                Status.NEW, null, 0, null);
+        taskManager.createEpic(newEpic);
+        Subtask newSubtask = new Subtask("Subtask", "Description",
+                Status.NEW, null, 60, newEpic.getId());
+        taskManager.createSubTask(newSubtask);
+        Task newTask2 = new Task("Task2", "Description2",
+                Status.NEW, LocalDateTime.of(2005, Month.DECEMBER, 12, 12, 12), 10);
+        taskManager.createTask(newTask2);
+        List<Task> expectedList = List.of(
+                taskManager.getTaskById(newTask2.getId()),
+                taskManager.getTaskById(1),
+                taskManager.getTaskById(2),
+                taskManager.getSubTaskByID(4),
+                taskManager.getSubTaskByID(5),
+                taskManager.getTaskById(newTask.getId()),
+                taskManager.getTaskById(newTask1.getId()),
+                taskManager.getSubTaskByID(newSubtask.getId())
+        );
+        List<Task> actualList = taskManager.getPrioritizedTasks();
+
+        assertIterableEquals(expectedList, actualList);
+        assertNotNull(actualList);
+        assertEquals(expectedList.size(), actualList.size());
     }
 
     @Test
@@ -100,7 +134,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createTask(newTask);
         Task newTask1 = new Task("Task", "Description",
                 Status.NEW, START_TIME_TASK, 10);
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.createTask(newTask1));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> taskManager.createTask(newTask1));
 
         assertEquals("Невозможно создать задачу, задача пересекается по времени с уже существующей",
                 ex.getMessage());
@@ -115,7 +149,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 Status.NEW, START_TIME_TASK.plusMonths(1), 10);
         taskManager.createTask(newTask1);
         newTask1.setStartTime(START_TIME_TASK.minusMonths(1));
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.updateTask(newTask1));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> taskManager.updateTask(newTask1));
 
         assertEquals("Невозможно обновить задачу, задача пересекается по времени с уже существующей", ex.getMessage());
     }
@@ -151,7 +185,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 Status.NEW, null, 0, null);
         taskManager.createEpic(newEpic);
         Subtask newSubtask = new Subtask("Subtask", "Description",
-                Status.NEW, START_TIME_SUBTASK, 60, newEpic.getId());
+                Status.NEW, START_TIME_SUBTASK.plusMonths(5), 60, newEpic.getId());
         taskManager.createSubTask(newSubtask);
         newEpic.setName("NewEpic");
         newEpic.setId(3);
@@ -171,12 +205,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createSubTask(newSubtask);
         Subtask newSubtask1 = new Subtask("Subtask", "Description",
                 Status.NEW, null, 60, newEpic.getId());
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.createSubTask(newSubtask1));
 
 
         assertNotNull(taskManager.getSubTaskByEpic(newEpic.getId()));
         assertEquals(newSubtask, taskManager.getSubTaskByID(newSubtask.getId()));
-        assertEquals("Пустые дата и время при создании подзадачи", ex.getMessage());
     }
 
     @Test
@@ -212,7 +244,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.updateSubTask(newSubtask);
         taskManager.deleteSubTaskById(newSubtask.getId());
 
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.updateSubTask(newSubtask));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> taskManager.updateSubTask(newSubtask));
         assertEquals("Подзадача не найдена.", ex.getMessage());
     }
 
@@ -227,7 +259,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         Subtask newSubtask1 = new Subtask("Subtask", "Description",
                 Status.NEW, START_TIME_SUBTASK, 60, newEpic.getId());
 
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.createSubTask(newSubtask1));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> taskManager.createSubTask(newSubtask1));
         assertEquals("Невозможно создать подзадачу, подзадача пересекается по времени с уже существующей",
                 ex.getMessage());
     }
@@ -238,7 +270,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                 Status.NEW, START_TIME_TASK, 10);
         taskManager.createTask(newTask);
 
-        assertThrows(ManagerSaveException.class, () -> taskManager.getTaskById(40));
+        assertThrows(TaskValidationException.class, () -> taskManager.getTaskById(40));
         assertNotNull(taskManager.getTaskById(newTask.getId()));
         assertEquals(taskManager.getTaskById(newTask.getId()), newTask);
     }
@@ -248,7 +280,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         Epic newEpic = new Epic("Epic", "Description",
                 Status.NEW, null, 0, null);
         taskManager.createEpic(newEpic);
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.getEpicTaskByID(40));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> taskManager.getEpicTaskByID(40));
 
         assertEquals("Эпика по заданному ID не существует", ex.getMessage());
         assertNotNull(taskManager.getEpicTaskByID(newEpic.getId()));
@@ -264,7 +296,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         Subtask newSubtask = new Subtask("Subtask", "Description",
                 Status.NEW, START_TIME_SUBTASK, 60, newEpic.getId());
         taskManager.createSubTask(newSubtask);
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.getSubTaskByID(40));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> taskManager.getSubTaskByID(40));
 
         assertEquals("Подзадачи по заданному ID не существует", ex.getMessage());
         assertNotNull(taskManager.getSubTaskByID(newSubtask.getId()));
@@ -297,7 +329,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertNotNull(taskManager.getTaskById(1));
         taskManager.deleteTaskById(1);
         Throwable ex = assertThrows(
-                ManagerSaveException.class,
+                TaskValidationException.class,
                 () -> taskManager.getTaskById(1));
         String expectedMessageException = "Задачи по заданному ID не существует";
 
@@ -306,13 +338,13 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void deleteTaskByIdTestWithEmptyDataTaskEpicSubTask() {
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.deleteTaskById(100));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> taskManager.deleteTaskById(100));
         assertEquals("Задача не найдена, для удаления.", ex.getMessage());
 
-        Throwable exEpic = assertThrows(ManagerSaveException.class, () -> taskManager.deleteEpicTaskById(100));
+        Throwable exEpic = assertThrows(TaskValidationException.class, () -> taskManager.deleteEpicTaskById(100));
         assertEquals("Эпик не найден для удаления.", exEpic.getMessage());
 
-        Throwable exSubTask = assertThrows(ManagerSaveException.class, () -> taskManager.deleteSubTaskById(100));
+        Throwable exSubTask = assertThrows(TaskValidationException.class, () -> taskManager.deleteSubTaskById(100));
         assertEquals("Подзадача не найдена для удаления.", exSubTask.getMessage());
 
     }
@@ -322,7 +354,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         assertNotNull(taskManager.getEpicTaskByID(3));
         taskManager.deleteEpicTaskById(3);
         Throwable ex = assertThrows(
-                ManagerSaveException.class,
+                TaskValidationException.class,
                 () -> taskManager.getEpicTaskByID(3));
         String expectedMessageException = "Эпика по заданному ID не существует";
 
@@ -339,9 +371,10 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createSubTask(newSubtask);
         int idSubtask = newSubtask.getId();
         assertNotNull(taskManager.getSubTaskByID(newSubtask.getId()));
-        Throwable ex1 = assertThrows(ManagerSaveException.class, () -> taskManager.deleteSubTaskById(idSubtask));
+        taskManager.deleteSubTaskById(idSubtask);
+        Throwable ex1 = assertThrows(TaskValidationException.class, () -> taskManager.getSubTaskByID(idSubtask));
 
-        assertEquals("Невозможно обновить время эпика, без существующих подзадач", ex1.getMessage());
+        assertEquals("Подзадачи по заданному ID не существует", ex1.getMessage());
     }
 
     @Test
@@ -377,7 +410,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
     void getSubTaskByEpicWithEpicEmpty() {
         Subtask newSubtask = new Subtask("Subtask", "Description",
                 Status.NEW, START_TIME_SUBTASK, 60, 100);
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> taskManager.createSubTask(newSubtask));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> taskManager.createSubTask(newSubtask));
         List<Subtask> subtasks = taskManager.getSubTaskByEpic(100);
 
         assertEquals("Невозможно создать подзадачу, не найден ID Эпика", ex.getMessage());

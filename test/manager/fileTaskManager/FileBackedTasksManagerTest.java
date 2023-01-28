@@ -90,7 +90,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>
         Epic newEpic = new Epic("Epic", "Description",
                 Status.NEW, null, 0, null);
         taskManager.createEpic(newEpic);
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> FileBackedTasksManager.loadFromFile(file));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> FileBackedTasksManager.loadFromFile(file));
 
         assertEquals("Невозможно рассчитать начало задачи для эпика, подзадачи отсутствуют", ex.getMessage());
     }

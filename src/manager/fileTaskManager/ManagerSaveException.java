@@ -1,12 +1,8 @@
 package manager.fileTaskManager;
 
-public class ManagerSaveException extends RuntimeException {
+public class ManagerSaveException extends IllegalArgumentException {
 
-    public ManagerSaveException(String message) {
-        super(message);
-    }
-
-    public ManagerSaveException(String message, Throwable throwable) {
-        super(message, throwable);
+    public ManagerSaveException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

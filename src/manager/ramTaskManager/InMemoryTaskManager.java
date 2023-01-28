@@ -2,7 +2,7 @@ package manager.ramTaskManager;
 
 import manager.Managers;
 import manager.TaskManager;
-import manager.fileTaskManager.ManagerSaveException;
+import manager.fileTaskManager.TaskValidationException;
 import manager.historyTaskManager.HistoryManager;
 import statusTasks.Status;
 import tasks.Epic;
@@ -19,7 +19,8 @@ public class InMemoryTaskManager implements TaskManager {
     protected HashMap<Integer, Epic> epicTasks = new HashMap<>();
     protected HashMap<Integer, Subtask> subTasks = new HashMap<>();
     protected HistoryManager historyManager = Managers.getDefaultHistory();
-    Comparator<Task> comparatorTasks = Comparator.comparing(Task::getStartTime);
+    Comparator<Task> comparatorTasks = Comparator.comparing(Task::getStartTime,
+            Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(Task::getId);
     protected Set<Task> prioritiesStorageTasks = new TreeSet<>(comparatorTasks);
 
 
@@ -110,7 +111,7 @@ public class InMemoryTaskManager implements TaskManager {
             historyManager.add(tasks.get(id));
             return tasks.get(id);
         } catch (NullPointerException exception) {
-            throw new ManagerSaveException("Задачи по заданному ID не существует");
+            throw new TaskValidationException("Задачи по заданному ID не существует");
         }
     }
 
@@ -120,7 +121,7 @@ public class InMemoryTaskManager implements TaskManager {
             historyManager.add(epicTasks.get(id));
             return epicTasks.get(id);
         } catch (NullPointerException exception) {
-            throw new ManagerSaveException("Эпика по заданному ID не существует");
+            throw new TaskValidationException("Эпика по заданному ID не существует");
         }
     }
 
@@ -130,7 +131,7 @@ public class InMemoryTaskManager implements TaskManager {
             historyManager.add(subTasks.get(id));
             return subTasks.get(id);
         } catch (NullPointerException exception) {
-            throw new ManagerSaveException("Подзадачи по заданному ID не существует");
+            throw new TaskValidationException("Подзадачи по заданному ID не существует");
         }
     }
 
@@ -142,7 +143,7 @@ public class InMemoryTaskManager implements TaskManager {
             tasks.put(id, task);
             prioritiesStorageTasks.add(task);
         } else {
-            throw new ManagerSaveException("Невозможно создать задачу, задача пересекается по времени с уже существующей");
+            throw new TaskValidationException("Невозможно создать задачу, задача пересекается по времени с уже существующей");
         }
     }
 
@@ -158,7 +159,7 @@ public class InMemoryTaskManager implements TaskManager {
             if (isNoTasksIntersections(task)) {
                 prioritiesStorageTasks.add(task);
             } else {
-                throw new ManagerSaveException("Невозможно обновить задачу, задача пересекается по времени с уже существующей");
+                throw new TaskValidationException("Невозможно обновить задачу, задача пересекается по времени с уже существующей");
             }
         } else {
             System.out.println("Задача не найдена.");
@@ -179,17 +180,8 @@ public class InMemoryTaskManager implements TaskManager {
             updateStatus(epicTasks.get(epic.getId()));
             updateStatus(epic);
             updateTimeEpic(epic);
-            if (prioritiesStorageTasks.contains(epicTasks.get(epic.getId()))) {
-                prioritiesStorageTasks.add(epic);
-                return;
-            }
-            if (isNoTasksIntersections(epic)) {
-                prioritiesStorageTasks.add(epic);
-            } else {
-                throw new ManagerSaveException("Невозможно обновить эпик, задача пересекается по времени с уже существующей");
-            }
         } else {
-            System.out.println("Эпик не найден.");
+            throw new TaskValidationException("Эпик не найден.");
         }
     }
 
@@ -204,13 +196,15 @@ public class InMemoryTaskManager implements TaskManager {
                 subTasks.put(id, subtask);
                 epic.addSubtaskIds(id);
                 updateStatus(epic);
-                updateTimeEpic(epic);
+                if (!(subtask.getStartTime() == null)) {
+                    updateTimeEpic(epic);
+                }
             } else {
-                throw new ManagerSaveException("Невозможно создать подзадачу, подзадача пересекается по времени с уже существующей");
+                throw new TaskValidationException("Невозможно создать подзадачу, подзадача пересекается по времени с уже существующей");
             }
         }
         if (epic == null) {
-            throw new ManagerSaveException("Невозможно создать подзадачу, не найден ID Эпика");
+            throw new TaskValidationException("Невозможно создать подзадачу, не найден ID Эпика");
         }
     }
 
@@ -231,7 +225,7 @@ public class InMemoryTaskManager implements TaskManager {
                 }
             }
         } else {
-            throw new ManagerSaveException("Подзадача не найдена.");
+            throw new TaskValidationException("Подзадача не найдена.");
         }
     }
 
@@ -242,7 +236,7 @@ public class InMemoryTaskManager implements TaskManager {
             prioritiesStorageTasks.removeIf(task -> task.getId() == id);
             historyManager.remove(id);
         } else {
-            throw new ManagerSaveException("Задача не найдена, для удаления.");
+            throw new TaskValidationException("Задача не найдена, для удаления.");
         }
     }
 
@@ -261,7 +255,7 @@ public class InMemoryTaskManager implements TaskManager {
             epicTasks.remove(id);
             historyManager.remove(id);
         } else {
-            throw new ManagerSaveException("Эпик не найден для удаления.");
+            throw new TaskValidationException("Эпик не найден для удаления.");
         }
     }
 
@@ -280,7 +274,7 @@ public class InMemoryTaskManager implements TaskManager {
             updateTimeEpic(epic);
             prioritiesStorageTasks.remove(subtask);
         } else {
-            throw new ManagerSaveException("Подзадача не найдена для удаления.");
+            throw new TaskValidationException("Подзадача не найдена для удаления.");
         }
     }
 
@@ -331,7 +325,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateTimeEpic(Epic epic) {
         List<Subtask> subtasks = getSubTaskByEpic(epic.getId());
         if (subtasks.isEmpty()) {
-            throw new ManagerSaveException("Невозможно обновить время эпика, без существующих подзадач");
+            return;
         }
         LocalDateTime startTime = subtasks.get(0).getStartTime();
         LocalDateTime endTime = subtasks.get(0).getEndTime();
@@ -352,19 +346,21 @@ public class InMemoryTaskManager implements TaskManager {
         if (task == null) {
             return false;
         }
-        try {
-            if (!prioritiesStorageTasks.isEmpty()) {
-                for (Task taskStorage : prioritiesStorageTasks) {
-                    if ((task.getStartTime().isAfter(taskStorage.getStartTime())
-                            || task.getStartTime().equals(taskStorage.getStartTime()))
-                            && (task.getEndTime().isBefore(taskStorage.getEndTime()))
-                            || task.getEndTime().equals(taskStorage.getEndTime())) {
-                        return false;
-                    }
+        if (task.getStartTime() == null) {
+            return true;
+        }
+        if (!prioritiesStorageTasks.isEmpty()) {
+            for (Task taskStorage : prioritiesStorageTasks) {
+                if (taskStorage.getStartTime() == null) {
+                    continue;
+                }
+                if ((task.getStartTime().isAfter(taskStorage.getStartTime())
+                        || task.getStartTime().equals(taskStorage.getStartTime()))
+                        && (task.getEndTime().isBefore(taskStorage.getEndTime()))
+                        || task.getEndTime().equals(taskStorage.getEndTime())) {
+                    return false;
                 }
             }
-        } catch (NullPointerException exception) {
-            throw new ManagerSaveException("Пустые дата и время при создании подзадачи");
         }
         return true;
     }

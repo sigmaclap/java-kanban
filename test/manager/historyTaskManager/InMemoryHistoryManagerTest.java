@@ -1,6 +1,6 @@
 package manager.historyTaskManager;
 
-import manager.fileTaskManager.ManagerSaveException;
+import manager.fileTaskManager.TaskValidationException;
 import manager.ramTaskManager.InMemoryTaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +119,7 @@ class InMemoryHistoryManagerTest {
     void removeTestTailPositionWithEmptyData() {
         historyManager.add(taskManager.getEpicTaskByID(3));
         historyManager.add(taskManager.getSubTaskByID(4));
-        Throwable ex = assertThrows(ManagerSaveException.class, () -> historyManager.remove(6));
+        Throwable ex = assertThrows(TaskValidationException.class, () -> historyManager.remove(6));
         List<Task> expectedList = List.of(
                 taskManager.getEpicTaskByID(3),
                 taskManager.getSubTaskByID(4)
