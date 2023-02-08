@@ -15,6 +15,7 @@ import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     int idTaskManager = 0;
+
     protected HashMap<Integer, Task> tasks = new HashMap<>();
     protected HashMap<Integer, Epic> epicTasks = new HashMap<>();
     protected HashMap<Integer, Subtask> subTasks = new HashMap<>();
@@ -35,6 +36,18 @@ public class InMemoryTaskManager implements TaskManager {
 
     public List<Task> getTasks() {
         return new ArrayList<>(tasks.values());
+    }
+
+    public Map<Integer, Task> getMapTasks() {
+        return new HashMap<>(tasks);
+    }
+
+    public Map<Integer, Task> getMapEpics() {
+        return new HashMap<>(epicTasks);
+    }
+
+    public Map<Integer, Task> getMapSubTasks() {
+        return new HashMap<>(subTasks);
     }
 
     public List<Epic> getEpicTasks() {
@@ -138,6 +151,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createTask(Task task) {
         int id = ++idTaskManager;
+        if (tasks.containsKey(id)) {
+            id = getAllTasksByProject().size() + 1;
+        }
         task.setId(id);
         if (isNoTasksIntersections(task)) {
             tasks.put(id, task);
@@ -169,6 +185,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createEpic(Epic epic) {
         int id = ++idTaskManager;
+        if (epicTasks.containsKey(id)) {
+            id = getAllTasksByProject().size() + 1;
+        }
         epic.setId(id);
         epicTasks.put(id, epic);
     }
@@ -188,6 +207,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createSubTask(Subtask subtask) {
         int id = ++idTaskManager;
+        if (subTasks.containsKey(id)) {
+            id = getAllTasksByProject().size() + 1;
+        }
         subtask.setId(id);
         Epic epic = epicTasks.get(subtask.getEpicId());
         if (epic != null) {
@@ -196,7 +218,7 @@ public class InMemoryTaskManager implements TaskManager {
                 subTasks.put(id, subtask);
                 epic.addSubtaskIds(id);
                 updateStatus(epic);
-                if (!(subtask.getStartTime() == null)) {
+                if (subtask.getStartTime() != null) {
                     updateTimeEpic(epic);
                 }
             } else {
@@ -233,7 +255,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTaskById(Integer id) {
         if (tasks.containsKey(id)) {
             tasks.remove(id);
-            prioritiesStorageTasks.removeIf(task -> task.getId() == id);
+            prioritiesStorageTasks.removeIf(task -> Objects.equals(task.getId(), id));
             historyManager.remove(id);
         } else {
             throw new TaskValidationException("Задача не найдена, для удаления.");
@@ -342,6 +364,10 @@ public class InMemoryTaskManager implements TaskManager {
         epic.setDuration(Duration.between(startTime, endTime).toMinutes());
     }
 
+    @Override
+    public void loadFromServer() {
+    }
+
     public boolean isNoTasksIntersections(Task task) {
         if (task == null) {
             return false;
@@ -363,5 +389,13 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
         return true;
+    }
+
+    public List<Task> getAllTasksByProject() {
+        List<Task> tasksAllList = new ArrayList<>();
+        tasksAllList.addAll(getTasks());
+        tasksAllList.addAll(getEpicTasks());
+        tasksAllList.addAll(getSubTasks());
+        return tasksAllList;
     }
 }

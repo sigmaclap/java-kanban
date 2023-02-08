@@ -6,6 +6,7 @@ import tasks.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public interface TaskManager {
 
@@ -23,6 +24,12 @@ public interface TaskManager {
     void deleteAllEpics();
 
     void deleteAllSubs();
+
+    Map<Integer, Task> getMapTasks();
+
+    Map<Integer, Task> getMapEpics();
+
+    Map<Integer, Task> getMapSubTasks();
 
     Task getTaskById(int id);
 
@@ -53,4 +60,8 @@ public interface TaskManager {
     List<Task> getPrioritizedTasks();
 
     void updateTimeEpic(Epic epic);
+
+    void loadFromServer();
+
+    List<Task> getAllTasksByProject();
 }
