@@ -1,5 +1,8 @@
 package server;
 
+import manager.fileTaskManager.ManagerSaveException;
+import manager.fileTaskManager.TaskValidationException;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,7 +31,11 @@ public class KVTaskClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            api = response.body();
+            if (response.statusCode() == 200) {
+                api = response.body();
+            } else {
+                throw new TaskValidationException("Ошибка регистрации!");
+            }
         } catch (IOException | InterruptedException e) {
             System.out.println(e.getMessage());
         }
@@ -46,7 +53,10 @@ public class KVTaskClient {
                     .header("Content-Type", "application/json")
                     .build();
 
-            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new ManagerSaveException("Ошибка сохранения, данные не сохранены!");
+            }
         } catch (IOException | InterruptedException e) {
             System.out.println(e.getMessage());
         }
@@ -65,7 +75,11 @@ public class KVTaskClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            managerState = response.body();
+            if (response.statusCode() == 200) {
+                managerState = response.body();
+            } else {
+                throw new TaskValidationException("Ошибка при выгрузке данных!");
+            }
         } catch (IOException | InterruptedException e) {
             System.out.println(e.getMessage());
         }

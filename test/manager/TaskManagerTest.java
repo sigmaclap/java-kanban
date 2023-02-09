@@ -17,9 +17,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class TaskManagerTest<T extends TaskManager> {
     protected T taskManager;
-    private static LocalDateTime START_TIME_TASK =
+    private static final LocalDateTime START_TIME_TASK =
             LocalDateTime.of(2023, Month.JANUARY, 1, 13, 0);
-    private static LocalDateTime START_TIME_SUBTASK =
+    private static final LocalDateTime START_TIME_SUBTASK =
             LocalDateTime.of(2023, Month.JANUARY, 2, 13, 0);
 
     public void ManagerObject() {

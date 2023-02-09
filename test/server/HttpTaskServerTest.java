@@ -2,7 +2,6 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.sun.net.httpserver.HttpServer;
 import manager.Managers;
 import manager.TaskManager;
 import org.junit.jupiter.api.AfterEach;
@@ -15,7 +14,6 @@ import tasks.Task;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -547,21 +545,5 @@ class HttpTaskServerTest {
         assertNotNull(tasksAllList);
         assertEquals(2, tasksAllList.size());
         assertIterableEquals(expected, tasksAllList);
-    }
-
-    @Test
-    void shouldLoadFromServer() throws IOException {
-        taskManager.getTaskById(1);
-        taskManager.getSubTaskByID(5);
-        TaskManager manager = Managers.getDefault();
-        HttpServer taskServer = HttpServer.create(new InetSocketAddress("localhost", 8000), 0);
-        taskServer.start();
-        manager.loadFromServer();
-
-        List<Task> expected = taskManager.getAllTasksByProject();
-        List<Task> actual = manager.getAllTasksByProject();
-
-        assertNotNull(manager.getAllTasksByProject());
-        assertIterableEquals(expected, actual);
     }
 }

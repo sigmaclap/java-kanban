@@ -57,6 +57,11 @@ public class Task {
         this.id = id;
     }
 
+    public TypeTasks getTypeTasks() {
+        return TypeTasks.TASK;
+    }
+
+
     public Status getStatus() {
         return status;
     }

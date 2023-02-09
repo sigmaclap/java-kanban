@@ -39,6 +39,11 @@ public class Epic extends Task {
     }
 
     @Override
+    public TypeTasks getTypeTasks() {
+        return TypeTasks.EPIC;
+    }
+
+    @Override
     public LocalDateTime getEndTime() {
         return endTime;
     }

@@ -1,7 +1,7 @@
 package tasks;
 
-import manager.Managers;
 import manager.TaskManager;
+import manager.ramTaskManager.InMemoryTaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import statusTasks.Status;
@@ -13,11 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class EpicTest {
     private Epic epic;
-    private final TaskManager manager = Managers.getDefault();
+    private final TaskManager manager = new InMemoryTaskManager();
 
-    private static LocalDateTime START_TIME_SUBTASK_1 =
+    private static final LocalDateTime START_TIME_SUBTASK_1 =
             LocalDateTime.of(2023, Month.JANUARY, 1, 13, 0);
-    private static LocalDateTime START_TIME_SUBTASK_2 =
+    private static final LocalDateTime START_TIME_SUBTASK_2 =
             LocalDateTime.of(2023, Month.JANUARY, 1, 14, 0);
 
     @BeforeEach
